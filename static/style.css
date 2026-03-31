@@ -369,6 +369,12 @@ textarea:focus, input:focus, select:focus {
     opacity: var(--archived-opacity);
 }
 
+.achievement-card .card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
 .achievement-card .date {
     font-size: 0.8rem;
     color: var(--text-secondary);

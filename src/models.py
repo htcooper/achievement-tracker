@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 
 class AchievementCreate(BaseModel):
+    title: str | None = None
     situation: str
     action: str
     result: str | None = None
@@ -11,6 +12,7 @@ class AchievementCreate(BaseModel):
 
 
 class AchievementUpdate(BaseModel):
+    title: str | None = None
     situation: str | None = None
     action: str | None = None
     result: str | None = None
@@ -19,6 +21,7 @@ class AchievementUpdate(BaseModel):
 
 class AchievementResponse(BaseModel):
     id: int
+    title: str | None
     situation: str
     action: str
     result: str | None
@@ -37,6 +40,7 @@ class TagSuggestRequest(BaseModel):
 
 class TagSuggestResponse(BaseModel):
     suggested_tags: list[str]
+    suggested_title: str | None = None
 
 
 class TagWithCount(BaseModel):

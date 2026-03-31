@@ -35,6 +35,7 @@ class TestCreateAchievement:
         resp = client.post(
             "/api/achievements",
             json={
+                "title": "Helped the team",
                 "situation": "Team needed help",
                 "action": "I helped",
                 "result": "Problem solved",
@@ -43,6 +44,7 @@ class TestCreateAchievement:
         )
         assert resp.status_code == 200
         data = resp.json()
+        assert data["title"] == "Helped the team"
         assert data["situation"] == "Team needed help"
         assert data["tags"] == ["leadership"]
         assert data["archived"] is False
@@ -56,6 +58,7 @@ class TestCreateAchievement:
             },
         )
         assert resp.status_code == 200
+        assert resp.json()["title"] is None
         assert resp.json()["result"] is None
 
     def test_create_missing_fields(self, client: TestClient) -> None:
@@ -179,11 +182,17 @@ class TestSuggestTags:
             assert resp.status_code == 503
 
     def test_suggest_with_mock(self, client: TestClient) -> None:
+        async def mock_suggest(*args, **kwargs):  # type: ignore[no-untyped-def]
+            return {
+                "tags": ["leadership", "mentoring"],
+                "title": "Led team mentoring",
+            }
+
         with (
             patch("src.tag_suggester.is_configured", return_value=True),
             patch(
-                "src.tag_suggester.suggest_tags",
-                return_value=["leadership", "mentoring"],
+                "src.tag_suggester.suggest_tags_and_title",
+                side_effect=mock_suggest,
             ),
         ):
             resp = client.post(
@@ -194,4 +203,6 @@ class TestSuggestTags:
                 },
             )
             assert resp.status_code == 200
-            assert resp.json()["suggested_tags"] == ["leadership", "mentoring"]
+            data = resp.json()
+            assert data["suggested_tags"] == ["leadership", "mentoring"]
+            assert data["suggested_title"] == "Led team mentoring"

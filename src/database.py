@@ -27,6 +27,7 @@ def init_db() -> None:
         conn.execute("""
             CREATE TABLE IF NOT EXISTS achievements (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT,
                 situation TEXT NOT NULL,
                 action TEXT NOT NULL,
                 result TEXT,
@@ -37,6 +38,11 @@ def init_db() -> None:
                 notion_page_id TEXT
             )
         """)
+        # Migration for existing databases without title column
+        try:
+            conn.execute("ALTER TABLE achievements ADD COLUMN title TEXT")
+        except sqlite3.OperationalError:
+            pass  # Column already exists
         conn.commit()
     finally:
         conn.close()
@@ -55,6 +61,7 @@ def add_achievement(
     action: str,
     result: str | None = None,
     tags: list[str] | None = None,
+    title: str | None = None,
 ) -> dict[str, Any]:
     """Add a new achievement and return it."""
     now = datetime.now().isoformat()
@@ -64,10 +71,10 @@ def add_achievement(
         cursor = conn.execute(
             """
             INSERT INTO achievements
-            (situation, action, result, tags, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?)
+            (title, situation, action, result, tags, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (situation, action, result, tags_json, now, now),
+            (title, situation, action, result, tags_json, now, now),
         )
         conn.commit()
         row = conn.execute(
@@ -109,6 +116,7 @@ def get_achievements(include_archived: bool = False) -> list[dict[str, Any]]:
 
 def update_achievement(
     achievement_id: int,
+    title: str | None = ...,  # type: ignore[assignment]
     situation: str | None = None,
     action: str | None = None,
     result: str | None = ...,  # type: ignore[assignment]
@@ -120,6 +128,7 @@ def update_achievement(
         return None
 
     now = datetime.now().isoformat()
+    new_title = title if title is not ... else existing["title"]
     new_situation = situation if situation is not None else existing["situation"]
     new_action = action if action is not None else existing["action"]
     new_result = result if result is not ... else existing["result"]
@@ -130,10 +139,19 @@ def update_achievement(
         conn.execute(
             """
             UPDATE achievements
-            SET situation = ?, action = ?, result = ?, tags = ?, updated_at = ?
+            SET title = ?, situation = ?, action = ?,
+                result = ?, tags = ?, updated_at = ?
             WHERE id = ?
             """,
-            (new_situation, new_action, new_result, new_tags, now, achievement_id),
+            (
+                new_title,
+                new_situation,
+                new_action,
+                new_result,
+                new_tags,
+                now,
+                achievement_id,
+            ),
         )
         conn.commit()
         return get_achievement_by_id(achievement_id)
@@ -207,9 +225,11 @@ def search_achievements(
         conditions.append("archived = 0")
 
     if query:
-        conditions.append("(situation LIKE ? OR action LIKE ? OR result LIKE ?)")
+        conditions.append(
+            "(title LIKE ? OR situation LIKE ?" " OR action LIKE ? OR result LIKE ?)"
+        )
         like_query = f"%{query}%"
-        params.extend([like_query, like_query, like_query])
+        params.extend([like_query, like_query, like_query, like_query])
 
     if date_from:
         conditions.append("created_at >= ?")

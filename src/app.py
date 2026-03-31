@@ -48,6 +48,7 @@ def create_achievement(body: AchievementCreate) -> AchievementResponse:
         action=body.action,
         result=body.result,
         tags=body.tags,
+        title=body.title,
     )
     return AchievementResponse(**result)
 
@@ -85,6 +86,7 @@ def update_achievement(
 ) -> AchievementResponse:
     result = db.update_achievement(
         achievement_id=achievement_id,
+        title=body.title,
         situation=body.situation,
         action=body.action,
         result=body.result,
@@ -136,18 +138,21 @@ def get_features() -> dict[str, bool]:
 
 
 @app.post("/api/suggest-tags", response_model=TagSuggestResponse)
-def suggest_tags(body: TagSuggestRequest) -> TagSuggestResponse:
+async def suggest_tags(body: TagSuggestRequest) -> TagSuggestResponse:
     if not tag_suggester.is_configured():
         raise HTTPException(status_code=503, detail="OpenAI API key not configured")
 
     existing = [t["tag"] for t in db.get_all_tags()]
-    suggestions = tag_suggester.suggest_tags(
+    result = await tag_suggester.suggest_tags_and_title(
         situation=body.situation,
         action=body.action,
         result=body.result,
         existing_tags=existing,
     )
-    return TagSuggestResponse(suggested_tags=suggestions)
+    return TagSuggestResponse(
+        suggested_tags=result["tags"],
+        suggested_title=result["title"],
+    )
 
 
 # --- Notion Promote ---

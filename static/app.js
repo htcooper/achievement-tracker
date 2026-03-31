@@ -250,9 +250,14 @@ function renderCard(a) {
            ${features.notion ? `<button class="btn btn-secondary btn-sm" data-action="promote" data-id="${a.id}" ${a.notion_page_id ? "disabled" : ""}>Promote to Notion</button>` : ""}
            ${promotedBadge}`;
 
+    const titleHtml = a.title
+        ? `<div class="card-title">${esc(a.title)}</div>`
+        : "";
+
     return `
         <div class="achievement-card ${archivedClass}">
             <div class="date">${formatDate(a.created_at)}</div>
+            ${titleHtml}
             <div class="field">
                 <span class="field-label">Situation</span>
                 <div class="field-value">${esc(a.situation)}</div>
@@ -311,12 +316,13 @@ const mainTagInput = createTagInput(
 
 document.getElementById("achievement-form").addEventListener("submit", async (e) => {
     e.preventDefault();
+    const title = document.getElementById("title").value.trim() || null;
     const situation = document.getElementById("situation").value.trim();
     const action = document.getElementById("action").value.trim();
     const result = document.getElementById("result").value.trim() || null;
 
     try {
-        await api("POST", "/achievements", { situation, action, result, tags: currentFormTags });
+        await api("POST", "/achievements", { title, situation, action, result, tags: currentFormTags });
         showToast("Achievement saved!");
         document.getElementById("achievement-form").reset();
         currentFormTags = [];
@@ -345,6 +351,13 @@ document.getElementById("suggest-tags-btn").addEventListener("click", async () =
 
     try {
         const data = await api("POST", "/suggest-tags", { situation, action, result });
+
+        // Populate title if empty
+        const titleInput = document.getElementById("title");
+        if (!titleInput.value.trim() && data.suggested_title) {
+            titleInput.value = data.suggested_title;
+        }
+
         const container = document.getElementById("suggested-tags");
         const newSuggestions = data.suggested_tags.filter(t => !currentFormTags.includes(t));
 
@@ -404,6 +417,7 @@ const editTagInput = createTagInput(
 async function openEditModal(id) {
     const a = await api("GET", `/achievements/${id}`);
     document.getElementById("edit-id").value = a.id;
+    document.getElementById("edit-title").value = a.title || "";
     document.getElementById("edit-situation").value = a.situation;
     document.getElementById("edit-action").value = a.action;
     document.getElementById("edit-result").value = a.result || "";
@@ -422,12 +436,13 @@ document.getElementById("edit-cancel-btn").addEventListener("click", closeEditMo
 document.getElementById("edit-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const id = document.getElementById("edit-id").value;
+    const title = document.getElementById("edit-title").value.trim() || null;
     const situation = document.getElementById("edit-situation").value.trim();
     const action = document.getElementById("edit-action").value.trim();
     const result = document.getElementById("edit-result").value.trim() || null;
 
     try {
-        await api("PUT", `/achievements/${id}`, { situation, action, result, tags: editFormTags });
+        await api("PUT", `/achievements/${id}`, { title, situation, action, result, tags: editFormTags });
         showToast("Achievement updated!");
         closeEditModal();
         await Promise.all([loadAchievements(), loadTags()]);

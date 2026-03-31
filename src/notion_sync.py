@@ -61,7 +61,7 @@ def promote_to_notion(
     database_id = _get_or_create_database()
 
     # Build the page properties
-    title = star_narrative["situation"][:100]  # Truncate for title
+    title = achievement.get("title") or star_narrative["situation"][:100]
     tags = achievement.get("tags", [])
 
     properties: dict[str, Any] = {

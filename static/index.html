@@ -17,6 +17,10 @@
             <h2>New Achievement</h2>
             <form id="achievement-form">
                 <div class="form-group">
+                    <label for="title">Title <span class="optional">(optional)</span></label>
+                    <input type="text" id="title" placeholder="Short summary — or click Suggest Tags to auto-generate">
+                </div>
+                <div class="form-group">
                     <label for="situation">Situation</label>
                     <textarea id="situation" placeholder="What was the context or challenge?" rows="2" required></textarea>
                 </div>
@@ -75,6 +79,10 @@
             </div>
             <form id="edit-form">
                 <input type="hidden" id="edit-id">
+                <div class="form-group">
+                    <label for="edit-title">Title <span class="optional">(optional)</span></label>
+                    <input type="text" id="edit-title" placeholder="Short summary">
+                </div>
                 <div class="form-group">
                     <label for="edit-situation">Situation</label>
                     <textarea id="edit-situation" rows="2" required></textarea>

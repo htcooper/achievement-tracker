@@ -24,8 +24,10 @@ class TestAddAndGet:
             action="Led the migration to new provider",
             result="Reduced login latency by 40%",
             tags=["leadership", "technical"],
+            title="Auth migration",
         )
         assert result["id"] == 1
+        assert result["title"] == "Auth migration"
         assert result["situation"] == "Team needed auth migration"
         assert result["action"] == "Led the migration to new provider"
         assert result["result"] == "Reduced login latency by 40%"
@@ -33,11 +35,12 @@ class TestAddAndGet:
         assert result["archived"] is False
         assert result["notion_page_id"] is None
 
-    def test_add_achievement_no_result(self) -> None:
+    def test_add_achievement_no_title(self) -> None:
         result = db.add_achievement(
             situation="Context",
             action="Did something",
         )
+        assert result["title"] is None
         assert result["result"] is None
         assert result["tags"] == []
 
@@ -70,6 +73,12 @@ class TestUpdate:
         updated = db.update_achievement(created["id"], tags=["new1", "new2"])
         assert updated is not None
         assert updated["tags"] == ["new1", "new2"]
+
+    def test_update_title(self) -> None:
+        created = db.add_achievement(situation="S", action="A")
+        updated = db.update_achievement(created["id"], title="New Title")
+        assert updated is not None
+        assert updated["title"] == "New Title"
 
     def test_update_not_found(self) -> None:
         assert db.update_achievement(999, situation="X") is None
