@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Achievement Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Achievement Tracker</h1>
+        </header>
+
+        <!-- New Achievement Form -->
+        <section class="card form-card">
+            <h2>New Achievement</h2>
+            <form id="achievement-form">
+                <div class="form-group">
+                    <label for="situation">Situation</label>
+                    <textarea id="situation" placeholder="What was the context or challenge?" rows="2" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="action">What I did</label>
+                    <textarea id="action" placeholder="What actions did you take?" rows="2" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="result">Result <span class="optional">(optional)</span></label>
+                    <textarea id="result" placeholder="What was the outcome or impact?" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Tags</label>
+                    <div class="tag-input-container" id="tag-input-container">
+                        <div class="tag-chips" id="tag-chips"></div>
+                        <input type="text" id="tag-input" placeholder="Type to add tags..." autocomplete="off">
+                        <div class="tag-autocomplete" id="tag-autocomplete"></div>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm" id="suggest-tags-btn">Suggest Tags</button>
+                    <div class="suggested-tags" id="suggested-tags"></div>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Achievement</button>
+            </form>
+        </section>
+
+        <!-- Search & Filter -->
+        <section class="card filter-card">
+            <div class="filter-row">
+                <input type="text" id="search-input" placeholder="Search achievements..." class="search-input">
+                <select id="tag-filter" class="filter-select">
+                    <option value="">All tags</option>
+                </select>
+                <input type="date" id="date-from" class="filter-date" title="From date">
+                <input type="date" id="date-to" class="filter-date" title="To date">
+            </div>
+            <button type="button" class="btn btn-link btn-sm" id="view-all-tags-btn">View all tags</button>
+        </section>
+
+        <!-- Achievement List -->
+        <section id="achievements-list"></section>
+
+        <!-- Show Archived Toggle -->
+        <div class="archive-toggle">
+            <label>
+                <input type="checkbox" id="show-archived"> Show archived
+            </label>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay" id="edit-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Edit Achievement</h2>
+                <button class="modal-close" id="edit-modal-close">&times;</button>
+            </div>
+            <form id="edit-form">
+                <input type="hidden" id="edit-id">
+                <div class="form-group">
+                    <label for="edit-situation">Situation</label>
+                    <textarea id="edit-situation" rows="2" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-action">What I did</label>
+                    <textarea id="edit-action" rows="2" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-result">Result <span class="optional">(optional)</span></label>
+                    <textarea id="edit-result" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Tags</label>
+                    <div class="tag-input-container" id="edit-tag-input-container">
+                        <div class="tag-chips" id="edit-tag-chips"></div>
+                        <input type="text" id="edit-tag-input" placeholder="Type to add tags..." autocomplete="off">
+                        <div class="tag-autocomplete" id="edit-tag-autocomplete"></div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-danger btn-sm" id="edit-delete-btn">Delete</button>
+                    <div class="modal-actions-right">
+                        <button type="button" class="btn btn-secondary" id="edit-cancel-btn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Promote Modal -->
+    <div class="modal-overlay" id="promote-modal">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h2>Promote to Notion</h2>
+                <button class="modal-close" id="promote-modal-close">&times;</button>
+            </div>
+            <form id="promote-form">
+                <input type="hidden" id="promote-id">
+                <div class="form-group">
+                    <label for="promote-situation">Situation</label>
+                    <textarea id="promote-situation" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="promote-task">Task <span class="hint">(what was asked of you)</span></label>
+                    <textarea id="promote-task" rows="3" required placeholder="Describe the task or responsibility you were given..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="promote-action">Action</label>
+                    <textarea id="promote-action" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="promote-result">Result</label>
+                    <textarea id="promote-result" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Screenshots</label>
+                    <input type="file" id="promote-screenshots" multiple accept="image/*">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="promote-cancel-btn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Send to Notion</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- All Tags Modal -->
+    <div class="modal-overlay" id="tags-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>All Tags</h2>
+                <button class="modal-close" id="tags-modal-close">&times;</button>
+            </div>
+            <div id="all-tags-list" class="all-tags-list"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
