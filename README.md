@@ -1,6 +1,6 @@
 # Achievement Tracker
 
-A lightweight, self-hosted web app for capturing day-to-day accomplishments. Built for tracking wins that matter when it's time to update your resume or make the case for a promotion.
+A lightweight, self-hosted web app for capturing day-to-day accomplishments, with LLM-powered tagging and title generation. Built for tracking wins that matter when it's time to update your resume or make the case for a promotion.
 
 ## Quick Start
 
