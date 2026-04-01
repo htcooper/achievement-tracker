@@ -13,6 +13,9 @@ venv/
 # Data
 data/
 
+# Tasks
+tasks/
+
 # IDE
 .vscode/
 .idea/
