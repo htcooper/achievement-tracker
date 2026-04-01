@@ -19,6 +19,7 @@ from src.models import (
     PromoteRequest,
     TagSuggestRequest,
     TagSuggestResponse,
+    TitleSuggestResponse,
     TagWithCount,
 )
 
@@ -143,16 +144,26 @@ async def suggest_tags(body: TagSuggestRequest) -> TagSuggestResponse:
         raise HTTPException(status_code=503, detail="OpenAI API key not configured")
 
     existing = [t["tag"] for t in db.get_all_tags()]
-    result = await tag_suggester.suggest_tags_and_title(
+    tags = await tag_suggester._suggest_tags_async(
         situation=body.situation,
         action=body.action,
         result=body.result,
         existing_tags=existing,
     )
-    return TagSuggestResponse(
-        suggested_tags=result["tags"],
-        suggested_title=result["title"],
+    return TagSuggestResponse(suggested_tags=tags)
+
+
+@app.post("/api/suggest-title", response_model=TitleSuggestResponse)
+async def suggest_title(body: TagSuggestRequest) -> TitleSuggestResponse:
+    if not tag_suggester.is_configured():
+        raise HTTPException(status_code=503, detail="OpenAI API key not configured")
+
+    title = await tag_suggester._suggest_title_async(
+        situation=body.situation,
+        action=body.action,
+        result=body.result,
     )
+    return TitleSuggestResponse(suggested_title=title)
 
 
 # --- Notion Promote ---

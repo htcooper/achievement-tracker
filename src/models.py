@@ -40,6 +40,9 @@ class TagSuggestRequest(BaseModel):
 
 class TagSuggestResponse(BaseModel):
     suggested_tags: list[str]
+
+
+class TitleSuggestResponse(BaseModel):
     suggested_title: str | None = None
 
 
