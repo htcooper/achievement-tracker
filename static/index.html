@@ -10,15 +10,24 @@
     <div class="container">
         <header>
             <h1>Achievement Tracker</h1>
+            <div class="theme-toggle">
+                <span class="theme-label">Dark</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="theme-toggle">
+                    <span class="toggle-slider"></span>
+                </label>
+                <span class="theme-label">Light</span>
+            </div>
         </header>
 
         <!-- New Achievement Form -->
+        <h2 class="section-heading">New Achievement</h2>
         <section class="card form-card">
-            <h2>New Achievement</h2>
             <form id="achievement-form">
                 <div class="form-group">
                     <label for="title">Title <span class="optional">(optional)</span></label>
-                    <input type="text" id="title" placeholder="Short summary — or click Suggest Tags to auto-generate">
+                    <input type="text" id="title" placeholder="Short summary">
+                    <button type="button" class="btn btn-secondary btn-sm" id="suggest-title-btn">Suggest Title</button>
                 </div>
                 <div class="form-group">
                     <label for="situation">Situation</label>
@@ -47,6 +56,7 @@
         </section>
 
         <!-- Search & Filter -->
+        <h2 class="section-heading">Search & Filter</h2>
         <section class="card filter-card">
             <div class="filter-row">
                 <input type="text" id="search-input" placeholder="Search achievements..." class="search-input">
@@ -60,6 +70,7 @@
         </section>
 
         <!-- Achievement List -->
+        <h2 class="section-heading">Achievements</h2>
         <section id="achievements-list"></section>
 
         <!-- Show Archived Toggle -->

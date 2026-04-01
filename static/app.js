@@ -240,7 +240,7 @@ function renderCard(a) {
         : "";
 
     const tagsHtml = a.tags.length > 0
-        ? `<div class="tags">${a.tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}</div>`
+        ? `<div class="field"><span class="field-label">Tags</span><div class="tags">${a.tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}</div></div>`
         : "";
 
     const actions = a.archived
@@ -277,6 +277,7 @@ function renderCard(a) {
 async function loadFeatures() {
     features = await api("GET", "/config/features");
     document.getElementById("suggest-tags-btn").style.display = features.ai_tags ? "" : "none";
+    document.getElementById("suggest-title-btn").style.display = features.ai_tags ? "" : "none";
 }
 
 async function loadTags() {
@@ -352,12 +353,6 @@ document.getElementById("suggest-tags-btn").addEventListener("click", async () =
     try {
         const data = await api("POST", "/suggest-tags", { situation, action, result });
 
-        // Populate title if empty
-        const titleInput = document.getElementById("title");
-        if (!titleInput.value.trim() && data.suggested_title) {
-            titleInput.value = data.suggested_title;
-        }
-
         const container = document.getElementById("suggested-tags");
         const newSuggestions = data.suggested_tags.filter(t => !currentFormTags.includes(t));
 
@@ -393,6 +388,36 @@ document.getElementById("suggest-tags-btn").addEventListener("click", async () =
     } finally {
         btn.disabled = false;
         btn.textContent = "Suggest Tags";
+    }
+});
+
+// === Suggest Title ===
+document.getElementById("suggest-title-btn").addEventListener("click", async () => {
+    const btn = document.getElementById("suggest-title-btn");
+    const situation = document.getElementById("situation").value.trim();
+    const action = document.getElementById("action").value.trim();
+    const result = document.getElementById("result").value.trim() || null;
+
+    if (!situation && !action) {
+        showToast("Add a situation or action first", true);
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Suggesting...";
+
+    try {
+        const data = await api("POST", "/suggest-title", { situation, action, result });
+        if (data.suggested_title) {
+            document.getElementById("title").value = data.suggested_title;
+        } else {
+            showToast("No title suggestion returned");
+        }
+    } catch (err) {
+        showToast(err.message, true);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "Suggest Title";
     }
 });
 
@@ -562,11 +587,28 @@ document.getElementById("date-from").addEventListener("change", loadAchievements
 document.getElementById("date-to").addEventListener("change", loadAchievements);
 document.getElementById("show-archived").addEventListener("change", loadAchievements);
 
+// === Theme Toggle ===
+function initTheme() {
+    const saved = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const theme = saved || (prefersDark ? "dark" : "light");
+    document.documentElement.setAttribute("data-theme", theme);
+    // Checkbox checked = light mode (toggle is between Dark and Light)
+    document.getElementById("theme-toggle").checked = theme === "light";
+}
+
+document.getElementById("theme-toggle").addEventListener("change", (e) => {
+    const theme = e.target.checked ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+});
+
 // === Init ===
-async function init() {
-    await loadFeatures();
-    await loadTags();
-    await loadAchievements();
+function init() {
+    initTheme();
+    loadFeatures();
+    loadTags();
+    loadAchievements();
 }
 
 init();
