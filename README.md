@@ -2,6 +2,10 @@
 
 A lightweight, self-hosted web app for capturing day-to-day accomplishments, with LLM-powered tagging and title generation. Built for tracking wins that matter when it's time to update your resume or make the case for a promotion.
 
+<p align="center">
+  <img src="at-ss.png" alt="Achievement Tracker screenshot" width="500">
+</p>
+
 ## Quick Start
 
 **Prerequisites:** Python 3.11+
