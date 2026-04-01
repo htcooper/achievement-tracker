@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 class AchievementCreate(BaseModel):
     title: str | None = None
+    company: str | None = None
     situation: str
     action: str
     result: str | None = None
@@ -13,6 +14,7 @@ class AchievementCreate(BaseModel):
 
 class AchievementUpdate(BaseModel):
     title: str | None = None
+    company: str | None = None
     situation: str | None = None
     action: str | None = None
     result: str | None = None
@@ -22,6 +24,7 @@ class AchievementUpdate(BaseModel):
 class AchievementResponse(BaseModel):
     id: int
     title: str | None
+    company: str | None
     situation: str
     action: str
     result: str | None

@@ -28,6 +28,7 @@ def init_db() -> None:
             CREATE TABLE IF NOT EXISTS achievements (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT,
+                company TEXT,
                 situation TEXT NOT NULL,
                 action TEXT NOT NULL,
                 result TEXT,
@@ -38,11 +39,15 @@ def init_db() -> None:
                 notion_page_id TEXT
             )
         """)
-        # Migration for existing databases without title column
-        try:
-            conn.execute("ALTER TABLE achievements ADD COLUMN title TEXT")
-        except sqlite3.OperationalError:
-            pass  # Column already exists
+        # Migrations for existing databases
+        for column_sql in [
+            "ALTER TABLE achievements ADD COLUMN title TEXT",
+            "ALTER TABLE achievements ADD COLUMN company TEXT",
+        ]:
+            try:
+                conn.execute(column_sql)
+            except sqlite3.OperationalError:
+                pass  # Column already exists
         conn.commit()
     finally:
         conn.close()
@@ -62,6 +67,7 @@ def add_achievement(
     result: str | None = None,
     tags: list[str] | None = None,
     title: str | None = None,
+    company: str | None = None,
 ) -> dict[str, Any]:
     """Add a new achievement and return it."""
     now = datetime.now().isoformat()
@@ -71,10 +77,10 @@ def add_achievement(
         cursor = conn.execute(
             """
             INSERT INTO achievements
-            (title, situation, action, result, tags, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            (title, company, situation, action, result, tags, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (title, situation, action, result, tags_json, now, now),
+            (title, company, situation, action, result, tags_json, now, now),
         )
         conn.commit()
         row = conn.execute(
@@ -117,6 +123,7 @@ def get_achievements(include_archived: bool = False) -> list[dict[str, Any]]:
 def update_achievement(
     achievement_id: int,
     title: str | None = ...,  # type: ignore[assignment]
+    company: str | None = ...,  # type: ignore[assignment]
     situation: str | None = None,
     action: str | None = None,
     result: str | None = ...,  # type: ignore[assignment]
@@ -129,6 +136,7 @@ def update_achievement(
 
     now = datetime.now().isoformat()
     new_title = title if title is not ... else existing["title"]
+    new_company = company if company is not ... else existing["company"]
     new_situation = situation if situation is not None else existing["situation"]
     new_action = action if action is not None else existing["action"]
     new_result = result if result is not ... else existing["result"]
@@ -139,12 +147,13 @@ def update_achievement(
         conn.execute(
             """
             UPDATE achievements
-            SET title = ?, situation = ?, action = ?,
+            SET title = ?, company = ?, situation = ?, action = ?,
                 result = ?, tags = ?, updated_at = ?
             WHERE id = ?
             """,
             (
                 new_title,
+                new_company,
                 new_situation,
                 new_action,
                 new_result,
@@ -210,11 +219,26 @@ def get_all_tags() -> list[dict[str, Any]]:
         conn.close()
 
 
+def get_all_companies() -> list[str]:
+    """Get all unique company names, sorted alphabetically."""
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            "SELECT DISTINCT company FROM achievements"
+            " WHERE company IS NOT NULL AND company != ''"
+            " ORDER BY company"
+        ).fetchall()
+        return [row["company"] for row in rows]
+    finally:
+        conn.close()
+
+
 def search_achievements(
     query: str | None = None,
     tags: list[str] | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
+    company: str | None = None,
     include_archived: bool = False,
 ) -> list[dict[str, Any]]:
     """Search achievements with optional filters."""
@@ -226,10 +250,15 @@ def search_achievements(
 
     if query:
         conditions.append(
-            "(title LIKE ? OR situation LIKE ?" " OR action LIKE ? OR result LIKE ?)"
+            "(title LIKE ? OR situation LIKE ?"
+            " OR action LIKE ? OR result LIKE ?)"
         )
         like_query = f"%{query}%"
         params.extend([like_query, like_query, like_query, like_query])
+
+    if company:
+        conditions.append("company = ?")
+        params.append(company)
 
     if date_from:
         conditions.append("created_at >= ?")

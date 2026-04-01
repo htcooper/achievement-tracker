@@ -30,6 +30,13 @@
                     <button type="button" class="btn btn-secondary btn-sm" id="suggest-title-btn">Suggest Title</button>
                 </div>
                 <div class="form-group">
+                    <label for="company">Company <span class="optional">(optional)</span></label>
+                    <div class="company-input-wrapper">
+                        <input type="text" id="company" placeholder="Start typing to see existing companies..." autocomplete="off">
+                        <div class="company-autocomplete" id="company-autocomplete"></div>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label for="situation">Situation</label>
                     <textarea id="situation" placeholder="What was the context or challenge?" rows="2" required></textarea>
                 </div>
@@ -63,8 +70,17 @@
                 <select id="tag-filter" class="filter-select">
                     <option value="">All tags</option>
                 </select>
-                <input type="date" id="date-from" class="filter-date" title="From date">
-                <input type="date" id="date-to" class="filter-date" title="To date">
+            </div>
+            <div class="filter-row">
+                <select id="company-filter" class="filter-select">
+                    <option value="">All companies</option>
+                </select>
+                <div class="date-range">
+                    <label class="date-label" for="date-from">From</label>
+                    <input type="date" id="date-from" class="filter-date">
+                    <label class="date-label" for="date-to">To</label>
+                    <input type="date" id="date-to" class="filter-date">
+                </div>
             </div>
             <button type="button" class="btn btn-link btn-sm" id="view-all-tags-btn">View all tags</button>
         </section>
@@ -93,6 +109,13 @@
                 <div class="form-group">
                     <label for="edit-title">Title <span class="optional">(optional)</span></label>
                     <input type="text" id="edit-title" placeholder="Short summary">
+                </div>
+                <div class="form-group">
+                    <label for="edit-company">Company <span class="optional">(optional)</span></label>
+                    <div class="company-input-wrapper">
+                        <input type="text" id="edit-company" placeholder="Start typing to see existing companies..." autocomplete="off">
+                        <div class="company-autocomplete" id="edit-company-autocomplete"></div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="edit-situation">Situation</label>

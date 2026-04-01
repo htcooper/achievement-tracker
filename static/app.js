@@ -1,5 +1,6 @@
 // === State ===
 let allTags = [];
+let allCompanies = [];
 let features = { ai_tags: false, notion: false };
 let currentFormTags = [];
 let editFormTags = [];
@@ -130,6 +131,45 @@ function createTagInput(containerId, chipsId, inputId, autocompleteId, getTagsFn
     return { render };
 }
 
+// === Company Autocomplete ===
+function setupCompanyAutocomplete(inputId, dropdownId) {
+    const input = document.getElementById(inputId);
+    const dropdown = document.getElementById(dropdownId);
+
+    input.addEventListener("input", () => {
+        const val = input.value.toLowerCase().trim();
+        if (!val) {
+            dropdown.classList.remove("visible");
+            return;
+        }
+        const matches = allCompanies.filter(c => c.toLowerCase().includes(val));
+        if (matches.length === 0) {
+            dropdown.classList.remove("visible");
+            return;
+        }
+        dropdown.innerHTML = matches.map(c =>
+            `<div class="company-autocomplete-item" data-company="${esc(c)}">${esc(c)}</div>`
+        ).join("");
+        dropdown.classList.add("visible");
+    });
+
+    dropdown.addEventListener("click", (e) => {
+        const item = e.target.closest(".company-autocomplete-item");
+        if (!item) return;
+        input.value = item.dataset.company;
+        dropdown.classList.remove("visible");
+    });
+
+    document.addEventListener("click", (e) => {
+        if (!input.parentElement.contains(e.target)) {
+            dropdown.classList.remove("visible");
+        }
+    });
+}
+
+setupCompanyAutocomplete("company", "company-autocomplete");
+setupCompanyAutocomplete("edit-company", "edit-company-autocomplete");
+
 // === Escape HTML ===
 function esc(str) {
     const div = document.createElement("div");
@@ -256,7 +296,7 @@ function renderCard(a) {
 
     return `
         <div class="achievement-card ${archivedClass}">
-            <div class="date">${formatDate(a.created_at)}</div>
+            <div class="date">${formatDate(a.created_at)}${a.company ? " &middot; " + esc(a.company) : ""}</div>
             ${titleHtml}
             <div class="field">
                 <span class="field-label">Situation</span>
@@ -290,9 +330,19 @@ async function loadTags() {
     select.value = currentVal;
 }
 
+async function loadCompanies() {
+    allCompanies = await api("GET", "/companies");
+    const select = document.getElementById("company-filter");
+    const currentVal = select.value;
+    select.innerHTML = '<option value="">All companies</option>' +
+        allCompanies.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+    select.value = currentVal;
+}
+
 async function loadAchievements() {
     const q = document.getElementById("search-input").value || undefined;
     const tag = document.getElementById("tag-filter").value || undefined;
+    const company = document.getElementById("company-filter").value || undefined;
     const dateFrom = document.getElementById("date-from").value || undefined;
     const dateTo = document.getElementById("date-to").value || undefined;
     const archived = document.getElementById("show-archived").checked;
@@ -300,6 +350,7 @@ async function loadAchievements() {
     let query = "?";
     if (q) query += `q=${encodeURIComponent(q)}&`;
     if (tag) query += `tags=${encodeURIComponent(tag)}&`;
+    if (company) query += `company=${encodeURIComponent(company)}&`;
     if (dateFrom) query += `date_from=${dateFrom}&`;
     if (dateTo) query += `date_to=${dateTo}&`;
     if (archived) query += `archived=true&`;
@@ -318,18 +369,19 @@ const mainTagInput = createTagInput(
 document.getElementById("achievement-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const title = document.getElementById("title").value.trim() || null;
+    const company = document.getElementById("company").value.trim() || null;
     const situation = document.getElementById("situation").value.trim();
     const action = document.getElementById("action").value.trim();
     const result = document.getElementById("result").value.trim() || null;
 
     try {
-        await api("POST", "/achievements", { title, situation, action, result, tags: currentFormTags });
+        await api("POST", "/achievements", { title, company, situation, action, result, tags: currentFormTags });
         showToast("Achievement saved!");
         document.getElementById("achievement-form").reset();
         currentFormTags = [];
         mainTagInput.render();
         document.getElementById("suggested-tags").innerHTML = "";
-        await Promise.all([loadAchievements(), loadTags()]);
+        await Promise.all([loadAchievements(), loadTags(), loadCompanies()]);
     } catch (err) {
         showToast(err.message, true);
     }
@@ -443,6 +495,7 @@ async function openEditModal(id) {
     const a = await api("GET", `/achievements/${id}`);
     document.getElementById("edit-id").value = a.id;
     document.getElementById("edit-title").value = a.title || "";
+    document.getElementById("edit-company").value = a.company || "";
     document.getElementById("edit-situation").value = a.situation;
     document.getElementById("edit-action").value = a.action;
     document.getElementById("edit-result").value = a.result || "";
@@ -462,15 +515,16 @@ document.getElementById("edit-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const id = document.getElementById("edit-id").value;
     const title = document.getElementById("edit-title").value.trim() || null;
+    const company = document.getElementById("edit-company").value.trim() || null;
     const situation = document.getElementById("edit-situation").value.trim();
     const action = document.getElementById("edit-action").value.trim();
     const result = document.getElementById("edit-result").value.trim() || null;
 
     try {
-        await api("PUT", `/achievements/${id}`, { title, situation, action, result, tags: editFormTags });
+        await api("PUT", `/achievements/${id}`, { title, company, situation, action, result, tags: editFormTags });
         showToast("Achievement updated!");
         closeEditModal();
-        await Promise.all([loadAchievements(), loadTags()]);
+        await Promise.all([loadAchievements(), loadTags(), loadCompanies()]);
     } catch (err) {
         showToast(err.message, true);
     }
@@ -483,7 +537,7 @@ document.getElementById("edit-delete-btn").addEventListener("click", async () =>
         await api("DELETE", `/achievements/${id}`);
         showToast("Achievement deleted");
         closeEditModal();
-        await Promise.all([loadAchievements(), loadTags()]);
+        await Promise.all([loadAchievements(), loadTags(), loadCompanies()]);
     } catch (err) {
         showToast(err.message, true);
     }
@@ -583,6 +637,7 @@ function debouncedLoad() {
 
 document.getElementById("search-input").addEventListener("input", debouncedLoad);
 document.getElementById("tag-filter").addEventListener("change", loadAchievements);
+document.getElementById("company-filter").addEventListener("change", loadAchievements);
 document.getElementById("date-from").addEventListener("change", loadAchievements);
 document.getElementById("date-to").addEventListener("change", loadAchievements);
 document.getElementById("show-archived").addEventListener("change", loadAchievements);
@@ -608,6 +663,7 @@ function init() {
     initTheme();
     loadFeatures();
     loadTags();
+    loadCompanies();
     loadAchievements();
 }
 

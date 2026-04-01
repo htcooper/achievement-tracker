@@ -182,17 +182,17 @@ class TestSuggestTags:
             assert resp.status_code == 503
 
     def test_suggest_with_mock(self, client: TestClient) -> None:
-        async def mock_suggest(*args, **kwargs):  # type: ignore[no-untyped-def]
-            return {
-                "tags": ["leadership", "mentoring"],
-                "title": "Led team mentoring",
-            }
+        async def mock_suggest_tags(*args, **kwargs):  # type: ignore[no-untyped-def]
+            return ["leadership", "mentoring"]
+
+        async def mock_suggest_title(*args, **kwargs):  # type: ignore[no-untyped-def]
+            return "Led team mentoring"
 
         with (
             patch("src.tag_suggester.is_configured", return_value=True),
             patch(
-                "src.tag_suggester.suggest_tags_and_title",
-                side_effect=mock_suggest,
+                "src.tag_suggester._suggest_tags_async",
+                side_effect=mock_suggest_tags,
             ),
         ):
             resp = client.post(
@@ -205,4 +205,21 @@ class TestSuggestTags:
             assert resp.status_code == 200
             data = resp.json()
             assert data["suggested_tags"] == ["leadership", "mentoring"]
+
+        with (
+            patch("src.tag_suggester.is_configured", return_value=True),
+            patch(
+                "src.tag_suggester._suggest_title_async",
+                side_effect=mock_suggest_title,
+            ),
+        ):
+            resp = client.post(
+                "/api/suggest-title",
+                json={
+                    "situation": "Led a team",
+                    "action": "Mentored juniors",
+                },
+            )
+            assert resp.status_code == 200
+            data = resp.json()
             assert data["suggested_title"] == "Led team mentoring"

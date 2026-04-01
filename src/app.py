@@ -19,8 +19,8 @@ from src.models import (
     PromoteRequest,
     TagSuggestRequest,
     TagSuggestResponse,
-    TitleSuggestResponse,
     TagWithCount,
+    TitleSuggestResponse,
 )
 
 load_dotenv()
@@ -50,6 +50,7 @@ def create_achievement(body: AchievementCreate) -> AchievementResponse:
         result=body.result,
         tags=body.tags,
         title=body.title,
+        company=body.company,
     )
     return AchievementResponse(**result)
 
@@ -60,6 +61,7 @@ def list_achievements(
     tags: Annotated[str | None, Query()] = None,
     date_from: Annotated[str | None, Query()] = None,
     date_to: Annotated[str | None, Query()] = None,
+    company: Annotated[str | None, Query()] = None,
     archived: Annotated[bool, Query()] = False,
 ) -> list[AchievementResponse]:
     tag_list = [t.strip() for t in tags.split(",") if t.strip()] if tags else None
@@ -68,6 +70,7 @@ def list_achievements(
         tags=tag_list,
         date_from=date_from,
         date_to=date_to,
+        company=company,
         include_archived=archived,
     )
     return [AchievementResponse(**r) for r in results]
@@ -88,6 +91,7 @@ def update_achievement(
     result = db.update_achievement(
         achievement_id=achievement_id,
         title=body.title,
+        company=body.company,
         situation=body.situation,
         action=body.action,
         result=body.result,
@@ -124,6 +128,14 @@ def toggle_archive(achievement_id: int) -> AchievementResponse:
 @app.get("/api/tags", response_model=list[TagWithCount])
 def get_tags() -> list[TagWithCount]:
     return [TagWithCount(**t) for t in db.get_all_tags()]
+
+
+# --- Companies ---
+
+
+@app.get("/api/companies", response_model=list[str])
+def get_companies() -> list[str]:
+    return db.get_all_companies()
 
 
 # --- AI Tag Suggestions ---
