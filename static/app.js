@@ -196,6 +196,7 @@ function getMonthLabel(key) {
 
 // === Render Achievements ===
 const expandedMonths = new Set();
+const expandedAchievements = new Set();
 let firstLoad = true;
 
 function renderAchievements(achievements) {
@@ -255,6 +256,24 @@ function renderAchievements(achievements) {
         });
     });
 
+    // Achievement header click handlers
+    list.querySelectorAll(".achievement-header").forEach(header => {
+        header.addEventListener("click", () => {
+            const id = parseInt(header.dataset.achievement);
+            const body = document.querySelector(`[data-achievement-body="${id}"]`);
+            const chevron = header.querySelector(".achievement-chevron");
+            if (expandedAchievements.has(id)) {
+                expandedAchievements.delete(id);
+                body.classList.add("collapsed");
+                chevron.classList.add("collapsed");
+            } else {
+                expandedAchievements.add(id);
+                body.classList.remove("collapsed");
+                chevron.classList.remove("collapsed");
+            }
+        });
+    });
+
     // Card action handlers
     list.querySelectorAll("[data-action]").forEach(btn => {
         btn.addEventListener("click", (e) => {
@@ -265,14 +284,25 @@ function renderAchievements(achievements) {
             else if (action === "archive") toggleArchive(id);
             else if (action === "unarchive") toggleArchive(id);
             else if (action === "promote") openPromoteModal(id);
+            else if (action === "sync-notion") openPromoteModal(id);
         });
     });
 }
 
 function renderCard(a) {
     const archivedClass = a.archived ? "archived" : "";
+    const expanded = expandedAchievements.has(a.id);
+
     const promotedBadge = a.notion_page_id
         ? '<span class="promoted-badge">&#10003; Promoted</span>'
+        : "";
+
+    const headerSummary = a.title
+        ? esc(a.title)
+        : esc(a.situation.length > 60 ? a.situation.slice(0, 60) + "…" : a.situation);
+
+    const headerTags = a.tags.length > 0
+        ? `<span class="header-tags">${a.tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}</span>`
         : "";
 
     const resultHtml = a.result
@@ -287,28 +317,33 @@ function renderCard(a) {
         ? `<button class="btn btn-secondary btn-sm" data-action="unarchive" data-id="${a.id}">Unarchive</button>`
         : `<button class="btn btn-secondary btn-sm" data-action="edit" data-id="${a.id}">Edit</button>
            <button class="btn btn-secondary btn-sm" data-action="archive" data-id="${a.id}">Archive</button>
-           ${features.notion ? `<button class="btn btn-secondary btn-sm" data-action="promote" data-id="${a.id}" ${a.notion_page_id ? "disabled" : ""}>Promote to Notion</button>` : ""}
-           ${promotedBadge}`;
-
-    const titleHtml = a.title
-        ? `<div class="card-title">${esc(a.title)}</div>`
-        : "";
+           ${features.notion ? (a.notion_page_id
+               ? `<button class="btn btn-secondary btn-sm" data-action="sync-notion" data-id="${a.id}">Sync to Notion</button>`
+               : `<button class="btn btn-secondary btn-sm" data-action="promote" data-id="${a.id}">Promote to Notion</button>`
+           ) : ""}`;
 
     return `
         <div class="achievement-card ${archivedClass}">
-            <div class="date">${formatDate(a.created_at)}${a.company ? " &middot; " + esc(a.company) : ""}</div>
-            ${titleHtml}
-            <div class="field">
-                <span class="field-label">Situation</span>
-                <div class="field-value">${esc(a.situation)}</div>
+            <div class="achievement-header" data-achievement="${a.id}">
+                <span class="achievement-chevron ${expanded ? "" : "collapsed"}">&#9660;</span>
+                <span class="achievement-header-date">${formatDate(a.created_at)}${a.company ? " &middot; " + esc(a.company) : ""}</span>
+                <span class="achievement-header-title">${headerSummary}</span>
+                ${promotedBadge}
+                ${headerTags}
             </div>
-            <div class="field">
-                <span class="field-label">What I did</span>
-                <div class="field-value">${esc(a.action)}</div>
+            <div class="achievement-body ${expanded ? "" : "collapsed"}" data-achievement-body="${a.id}">
+                <div class="field">
+                    <span class="field-label">Situation</span>
+                    <div class="field-value">${esc(a.situation)}</div>
+                </div>
+                ${a.notion_task ? `<div class="field"><span class="field-label">Task</span><div class="field-value">${esc(a.notion_task)}</div></div>` : ""}
+                <div class="field">
+                    <span class="field-label">What I did</span>
+                    <div class="field-value">${esc(a.action)}</div>
+                </div>
+                ${resultHtml}
+                <div class="actions">${actions}</div>
             </div>
-            ${resultHtml}
-            ${tagsHtml}
-            <div class="actions">${actions}</div>
         </div>
     `;
 }
@@ -546,12 +581,15 @@ document.getElementById("edit-delete-btn").addEventListener("click", async () =>
 // === Promote Modal ===
 async function openPromoteModal(id) {
     const a = await api("GET", `/achievements/${id}`);
+    const isSync = !!a.notion_page_id;
     document.getElementById("promote-id").value = a.id;
     document.getElementById("promote-situation").value = a.situation;
-    document.getElementById("promote-task").value = "";
+    document.getElementById("promote-task").value = a.notion_task || "";
     document.getElementById("promote-action").value = a.action;
     document.getElementById("promote-result").value = a.result || "";
     document.getElementById("promote-screenshots").value = "";
+    document.getElementById("promote-modal-title").textContent = isSync ? "Sync to Notion" : "Promote to Notion";
+    document.getElementById("promote-submit-btn").textContent = isSync ? "Sync to Notion" : "Send to Notion";
     document.getElementById("promote-modal").classList.add("visible");
 }
 
@@ -581,15 +619,18 @@ document.getElementById("promote-form").addEventListener("submit", async (e) => 
             await apiUpload(`/achievements/${id}/screenshots`, file);
         }
 
-        await api("POST", `/achievements/${id}/promote`, { situation, task, action, result });
-        showToast("Promoted to Notion!");
+        const isSync = document.getElementById("promote-modal-title").textContent === "Sync to Notion";
+        const method = isSync ? "PATCH" : "POST";
+        await api(method, `/achievements/${id}/promote`, { situation, task, action, result });
+        showToast(isSync ? "Synced to Notion!" : "Promoted to Notion!");
         closePromoteModal();
         await loadAchievements();
     } catch (err) {
         showToast(err.message, true);
     } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = "Send to Notion";
+        submitBtn.textContent = document.getElementById("promote-modal-title").textContent === "Sync to Notion"
+            ? "Sync to Notion" : "Send to Notion";
     }
 });
 

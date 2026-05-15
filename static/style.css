@@ -20,6 +20,7 @@
     --tag-text: #3730a3;
     --tag-suggestion-bg: #fef3c7;
     --tag-suggestion-text: #92400e;
+    --accent: #ea580c;
     --archived-opacity: 0.5;
     --radius: 8px;
     --shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -41,6 +42,7 @@
     --tag-text: #93c5fd;
     --tag-suggestion-bg: #422006;
     --tag-suggestion-text: #fbbf24;
+    --accent: #fb923c;
     --shadow: 0 1px 3px rgba(0,0,0,0.3);
     --input-bg: #333;
 }
@@ -127,7 +129,7 @@ header h1 {
 .section-heading {
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--accent);
     margin: 24px 0 8px;
 }
 
@@ -514,13 +516,67 @@ textarea:focus, input:focus, select:focus {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 14px 16px;
     margin-bottom: 8px;
     box-shadow: var(--shadow);
+    overflow: hidden;
 }
 
 .achievement-card.archived {
     opacity: var(--archived-opacity);
+}
+
+.achievement-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    cursor: pointer;
+    user-select: none;
+    flex-wrap: wrap;
+}
+
+.achievement-header:hover {
+    background: var(--bg);
+}
+
+.achievement-chevron {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+}
+
+.achievement-chevron.collapsed {
+    transform: rotate(-90deg);
+}
+
+.achievement-header-date {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.achievement-header-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    flex: 1;
+}
+
+.header-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    flex-basis: 100%;
+    padding-left: 20px;
+}
+
+.achievement-body {
+    padding: 4px 16px 14px;
+    border-top: 1px solid var(--border);
+}
+
+.achievement-body.collapsed {
+    display: none;
 }
 
 .achievement-card .card-title {
@@ -542,7 +598,7 @@ textarea:focus, input:focus, select:focus {
 .achievement-card .field-label {
     font-size: 0.75rem;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--accent);
     text-transform: uppercase;
     letter-spacing: 0.03em;
 }
