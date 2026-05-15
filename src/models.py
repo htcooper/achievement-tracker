@@ -33,6 +33,7 @@ class AchievementResponse(BaseModel):
     updated_at: str
     archived: bool
     notion_page_id: str | None
+    notion_task: str | None
 
 
 class TagSuggestRequest(BaseModel):

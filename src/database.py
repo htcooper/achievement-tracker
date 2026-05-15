@@ -43,6 +43,7 @@ def init_db() -> None:
         for column_sql in [
             "ALTER TABLE achievements ADD COLUMN title TEXT",
             "ALTER TABLE achievements ADD COLUMN company TEXT",
+            "ALTER TABLE achievements ADD COLUMN notion_task TEXT",
         ]:
             try:
                 conn.execute(column_sql)
@@ -286,17 +287,19 @@ def search_achievements(
         conn.close()
 
 
-def set_notion_page_id(achievement_id: int, notion_page_id: str) -> None:
-    """Store the Notion page ID after promoting an achievement."""
+def set_notion_page_id(
+    achievement_id: int, notion_page_id: str, notion_task: str = ""
+) -> None:
+    """Store the Notion page ID and task text after promoting or syncing."""
     conn = get_connection()
     try:
         conn.execute(
             """
             UPDATE achievements
-            SET notion_page_id = ?, updated_at = ?
+            SET notion_page_id = ?, notion_task = ?, updated_at = ?
             WHERE id = ?
             """,
-            (notion_page_id, datetime.now().isoformat(), achievement_id),
+            (notion_page_id, notion_task, datetime.now().isoformat(), achievement_id),
         )
         conn.commit()
     finally:

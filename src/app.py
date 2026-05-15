@@ -198,18 +198,59 @@ def promote_to_notion(achievement_id: int, body: PromoteRequest) -> AchievementR
     if screenshot_dir.exists():
         screenshot_paths = sorted(screenshot_dir.iterdir())
 
-    notion_page_id = notion_sync.promote_to_notion(
-        achievement=achievement,
-        star_narrative={
-            "situation": body.situation,
-            "task": body.task,
-            "action": body.action,
-            "result": body.result,
-        },
-        screenshot_paths=screenshot_paths,
-    )
+    try:
+        notion_page_id = notion_sync.promote_to_notion(
+            achievement=achievement,
+            star_narrative={
+                "situation": body.situation,
+                "task": body.task,
+                "action": body.action,
+                "result": body.result,
+            },
+            screenshot_paths=screenshot_paths,
+        )
+    except RuntimeError as e:
+        raise HTTPException(status_code=502, detail=str(e))
 
-    db.set_notion_page_id(achievement_id, notion_page_id)
+    db.set_notion_page_id(achievement_id, notion_page_id, body.task)
+    updated = db.get_achievement_by_id(achievement_id)
+    assert updated is not None
+    return AchievementResponse(**updated)
+
+
+@app.patch(
+    "/api/achievements/{achievement_id}/promote", response_model=AchievementResponse
+)
+def sync_to_notion(achievement_id: int, body: PromoteRequest) -> AchievementResponse:
+    achievement = db.get_achievement_by_id(achievement_id)
+    if not achievement:
+        raise HTTPException(status_code=404, detail="Achievement not found")
+    if not achievement.get("notion_page_id"):
+        raise HTTPException(status_code=400, detail="Achievement has not been promoted to Notion yet")
+    if not os.getenv("NOTION_API_KEY"):
+        raise HTTPException(status_code=503, detail="Notion API key not configured")
+
+    screenshot_dir = SCREENSHOTS_DIR / str(achievement_id)
+    screenshot_paths: list[Path] = []
+    if screenshot_dir.exists():
+        screenshot_paths = sorted(screenshot_dir.iterdir())
+
+    try:
+        notion_sync.update_notion_page(
+            page_id=achievement["notion_page_id"],
+            achievement=achievement,
+            star_narrative={
+                "situation": body.situation,
+                "task": body.task,
+                "action": body.action,
+                "result": body.result,
+            },
+            screenshot_paths=screenshot_paths,
+        )
+    except RuntimeError as e:
+        raise HTTPException(status_code=502, detail=str(e))
+
+    db.set_notion_page_id(achievement_id, achievement["notion_page_id"], body.task)
     updated = db.get_achievement_by_id(achievement_id)
     assert updated is not None
     return AchievementResponse(**updated)

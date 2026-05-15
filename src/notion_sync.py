@@ -2,6 +2,7 @@
 
 import json
 import os
+import urllib.error
 from pathlib import Path
 from typing import Any
 from urllib.request import Request, urlopen
@@ -27,9 +28,17 @@ def _notion_request(
     url = f"{NOTION_API_URL}/{endpoint}"
     body = json.dumps(data).encode() if data else None
     req = Request(url, data=body, headers=_get_headers(), method=method)
-    with urlopen(req) as resp:
-        result: dict[str, Any] = json.loads(resp.read().decode())
-        return result
+    try:
+        with urlopen(req) as resp:
+            result: dict[str, Any] = json.loads(resp.read().decode())
+            return result
+    except urllib.error.HTTPError as e:
+        raw = e.read().decode()
+        try:
+            message = json.loads(raw).get("message", f"HTTP {e.code}")
+        except json.JSONDecodeError:
+            message = f"HTTP {e.code}"
+        raise RuntimeError(f"Notion API error ({e.code}): {message}") from e
 
 
 def _get_or_create_database() -> str:
@@ -120,6 +129,50 @@ def promote_to_notion(
     result = _notion_request("POST", "pages", page_data)
     page_id: str = result["id"]
     return page_id
+
+
+def update_notion_page(
+    page_id: str,
+    achievement: dict[str, Any],
+    star_narrative: dict[str, str],
+    screenshot_paths: list[Path] | None = None,
+) -> None:
+    """Update an existing Notion page's properties and body content."""
+    title = achievement.get("title") or star_narrative["situation"][:100]
+    tags = achievement.get("tags", [])
+
+    properties: dict[str, Any] = {
+        "Title": {"title": [{"text": {"content": title}}]},
+        "Situation": {"rich_text": [{"text": {"content": star_narrative["situation"]}}]},
+        "Task": {"rich_text": [{"text": {"content": star_narrative["task"]}}]},
+        "Action": {"rich_text": [{"text": {"content": star_narrative["action"]}}]},
+        "Result": {"rich_text": [{"text": {"content": star_narrative["result"]}}]},
+        "Tags": {"multi_select": [{"name": tag} for tag in tags]},
+        "Date": {"date": {"start": achievement["created_at"][:10]}},
+    }
+    _notion_request("PATCH", f"pages/{page_id}", {"properties": properties})
+
+    # Delete existing blocks then append fresh ones
+    existing = _notion_request("GET", f"blocks/{page_id}/children")
+    for block in existing.get("results", []):
+        _notion_request("DELETE", f"blocks/{block['id']}")
+
+    children: list[dict[str, Any]] = [
+        _heading_block("Situation"),
+        _paragraph_block(star_narrative["situation"]),
+        _heading_block("Task"),
+        _paragraph_block(star_narrative["task"]),
+        _heading_block("Action"),
+        _paragraph_block(star_narrative["action"]),
+        _heading_block("Result"),
+        _paragraph_block(star_narrative["result"]),
+    ]
+    if screenshot_paths:
+        children.append(_heading_block("Screenshots"))
+        children.append(
+            _paragraph_block(f"{len(screenshot_paths)} screenshot(s) available locally.")
+        )
+    _notion_request("PATCH", f"blocks/{page_id}/children", {"children": children})
 
 
 def _heading_block(text: str) -> dict[str, Any]:
