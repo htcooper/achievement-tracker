@@ -28,10 +28,10 @@ The app opens in your browser automatically. No build step, no framework — jus
 - **Structured entries** — capture Situation, Action, and Result for each achievement
 - **AI-powered suggestions** — generate tags and titles from your entries using OpenAI
 - **Tag system** — autocomplete from existing tags, view all tags with usage counts
-- **Search and filter** — find achievements by keyword, tag, or date range
-- **Monthly grouping** — collapsible sections to keep a long list manageable
+- **Search and filter** — find achievements by keyword, tag, date range, or company
+- **Monthly grouping** — collapsible months, each with individually collapsible achievement rows
 - **Archive** — hide old entries without deleting them
-- **Promote to Notion** — expand an achievement into a full STAR story and push it to a Notion database
+- **Notion integration** — promote an achievement as a full STAR story to a Notion database, then sync updates back after edits
 - **Light/dark mode** — toggle with persisted preference
 - **Voice input ready** — works with dictation tools like WhisprFlow
 
