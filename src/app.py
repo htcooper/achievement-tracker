@@ -46,6 +46,7 @@ app = FastAPI(title="Achievement Tracker", lifespan=lifespan)
 def create_achievement(body: AchievementCreate) -> AchievementResponse:
     result = db.add_achievement(
         situation=body.situation,
+        task=body.task,
         action=body.action,
         result=body.result,
         tags=body.tags,
@@ -93,6 +94,7 @@ def update_achievement(
         title=body.title,
         company=body.company,
         situation=body.situation,
+        task=body.task,
         action=body.action,
         result=body.result,
         tags=body.tags,
@@ -212,7 +214,7 @@ def promote_to_notion(achievement_id: int, body: PromoteRequest) -> AchievementR
     except RuntimeError as e:
         raise HTTPException(status_code=502, detail=str(e))
 
-    db.set_notion_page_id(achievement_id, notion_page_id, body.task)
+    db.set_notion_page_id(achievement_id, notion_page_id)
     updated = db.get_achievement_by_id(achievement_id)
     assert updated is not None
     return AchievementResponse(**updated)
@@ -250,7 +252,7 @@ def sync_to_notion(achievement_id: int, body: PromoteRequest) -> AchievementResp
     except RuntimeError as e:
         raise HTTPException(status_code=502, detail=str(e))
 
-    db.set_notion_page_id(achievement_id, achievement["notion_page_id"], body.task)
+    db.set_notion_page_id(achievement_id, achievement["notion_page_id"])
     updated = db.get_achievement_by_id(achievement_id)
     assert updated is not None
     return AchievementResponse(**updated)

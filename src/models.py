@@ -7,6 +7,7 @@ class AchievementCreate(BaseModel):
     title: str | None = None
     company: str | None = None
     situation: str
+    task: str | None = None
     action: str
     result: str | None = None
     tags: list[str] = []
@@ -16,6 +17,7 @@ class AchievementUpdate(BaseModel):
     title: str | None = None
     company: str | None = None
     situation: str | None = None
+    task: str | None = None
     action: str | None = None
     result: str | None = None
     tags: list[str] | None = None
@@ -26,6 +28,7 @@ class AchievementResponse(BaseModel):
     title: str | None
     company: str | None
     situation: str
+    task: str | None
     action: str
     result: str | None
     tags: list[str]
@@ -33,7 +36,6 @@ class AchievementResponse(BaseModel):
     updated_at: str
     archived: bool
     notion_page_id: str | None
-    notion_task: str | None
 
 
 class TagSuggestRequest(BaseModel):

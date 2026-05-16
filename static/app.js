@@ -336,7 +336,7 @@ function renderCard(a) {
                     <span class="field-label">Situation</span>
                     <div class="field-value">${esc(a.situation)}</div>
                 </div>
-                ${a.notion_task ? `<div class="field"><span class="field-label">Task</span><div class="field-value">${esc(a.notion_task)}</div></div>` : ""}
+                ${a.task ? `<div class="field"><span class="field-label">Task</span><div class="field-value">${esc(a.task)}</div></div>` : ""}
                 <div class="field">
                     <span class="field-label">What I did</span>
                     <div class="field-value">${esc(a.action)}</div>
@@ -406,11 +406,12 @@ document.getElementById("achievement-form").addEventListener("submit", async (e)
     const title = document.getElementById("title").value.trim() || null;
     const company = document.getElementById("company").value.trim() || null;
     const situation = document.getElementById("situation").value.trim();
+    const task = document.getElementById("task").value.trim() || null;
     const action = document.getElementById("action").value.trim();
     const result = document.getElementById("result").value.trim() || null;
 
     try {
-        await api("POST", "/achievements", { title, company, situation, action, result, tags: currentFormTags });
+        await api("POST", "/achievements", { title, company, situation, task, action, result, tags: currentFormTags });
         showToast("Achievement saved!");
         document.getElementById("achievement-form").reset();
         currentFormTags = [];
@@ -532,6 +533,7 @@ async function openEditModal(id) {
     document.getElementById("edit-title").value = a.title || "";
     document.getElementById("edit-company").value = a.company || "";
     document.getElementById("edit-situation").value = a.situation;
+    document.getElementById("edit-task").value = a.task || "";
     document.getElementById("edit-action").value = a.action;
     document.getElementById("edit-result").value = a.result || "";
     editFormTags = [...a.tags];
@@ -552,11 +554,12 @@ document.getElementById("edit-form").addEventListener("submit", async (e) => {
     const title = document.getElementById("edit-title").value.trim() || null;
     const company = document.getElementById("edit-company").value.trim() || null;
     const situation = document.getElementById("edit-situation").value.trim();
+    const task = document.getElementById("edit-task").value.trim() || null;
     const action = document.getElementById("edit-action").value.trim();
     const result = document.getElementById("edit-result").value.trim() || null;
 
     try {
-        await api("PUT", `/achievements/${id}`, { title, company, situation, action, result, tags: editFormTags });
+        await api("PUT", `/achievements/${id}`, { title, company, situation, task, action, result, tags: editFormTags });
         showToast("Achievement updated!");
         closeEditModal();
         await Promise.all([loadAchievements(), loadTags(), loadCompanies()]);
@@ -584,7 +587,7 @@ async function openPromoteModal(id) {
     const isSync = !!a.notion_page_id;
     document.getElementById("promote-id").value = a.id;
     document.getElementById("promote-situation").value = a.situation;
-    document.getElementById("promote-task").value = a.notion_task || "";
+    document.getElementById("promote-task").value = a.task || "";
     document.getElementById("promote-action").value = a.action;
     document.getElementById("promote-result").value = a.result || "";
     document.getElementById("promote-screenshots").value = "";

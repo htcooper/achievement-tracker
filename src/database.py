@@ -44,11 +44,17 @@ def init_db() -> None:
             "ALTER TABLE achievements ADD COLUMN title TEXT",
             "ALTER TABLE achievements ADD COLUMN company TEXT",
             "ALTER TABLE achievements ADD COLUMN notion_task TEXT",
+            "ALTER TABLE achievements ADD COLUMN task TEXT",
         ]:
             try:
                 conn.execute(column_sql)
             except sqlite3.OperationalError:
                 pass  # Column already exists
+        # Migrate notion_task → task for any previously promoted achievements
+        conn.execute(
+            "UPDATE achievements SET task = notion_task"
+            " WHERE task IS NULL AND notion_task IS NOT NULL"
+        )
         conn.commit()
     finally:
         conn.close()
@@ -69,6 +75,7 @@ def add_achievement(
     tags: list[str] | None = None,
     title: str | None = None,
     company: str | None = None,
+    task: str | None = None,
 ) -> dict[str, Any]:
     """Add a new achievement and return it."""
     now = datetime.now().isoformat()
@@ -78,10 +85,10 @@ def add_achievement(
         cursor = conn.execute(
             """
             INSERT INTO achievements
-            (title, company, situation, action, result, tags, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            (title, company, situation, task, action, result, tags, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (title, company, situation, action, result, tags_json, now, now),
+            (title, company, situation, task, action, result, tags_json, now, now),
         )
         conn.commit()
         row = conn.execute(
@@ -126,6 +133,7 @@ def update_achievement(
     title: str | None = ...,  # type: ignore[assignment]
     company: str | None = ...,  # type: ignore[assignment]
     situation: str | None = None,
+    task: str | None = ...,  # type: ignore[assignment]
     action: str | None = None,
     result: str | None = ...,  # type: ignore[assignment]
     tags: list[str] | None = None,
@@ -139,6 +147,7 @@ def update_achievement(
     new_title = title if title is not ... else existing["title"]
     new_company = company if company is not ... else existing["company"]
     new_situation = situation if situation is not None else existing["situation"]
+    new_task = task if task is not ... else existing["task"]
     new_action = action if action is not None else existing["action"]
     new_result = result if result is not ... else existing["result"]
     new_tags = json.dumps(tags if tags is not None else existing["tags"])
@@ -148,7 +157,7 @@ def update_achievement(
         conn.execute(
             """
             UPDATE achievements
-            SET title = ?, company = ?, situation = ?, action = ?,
+            SET title = ?, company = ?, situation = ?, task = ?, action = ?,
                 result = ?, tags = ?, updated_at = ?
             WHERE id = ?
             """,
@@ -156,6 +165,7 @@ def update_achievement(
                 new_title,
                 new_company,
                 new_situation,
+                new_task,
                 new_action,
                 new_result,
                 new_tags,
@@ -251,11 +261,11 @@ def search_achievements(
 
     if query:
         conditions.append(
-            "(title LIKE ? OR situation LIKE ?"
+            "(title LIKE ? OR situation LIKE ? OR task LIKE ?"
             " OR action LIKE ? OR result LIKE ?)"
         )
         like_query = f"%{query}%"
-        params.extend([like_query, like_query, like_query, like_query])
+        params.extend([like_query, like_query, like_query, like_query, like_query])
 
     if company:
         conditions.append("company = ?")
@@ -287,19 +297,17 @@ def search_achievements(
         conn.close()
 
 
-def set_notion_page_id(
-    achievement_id: int, notion_page_id: str, notion_task: str = ""
-) -> None:
-    """Store the Notion page ID and task text after promoting or syncing."""
+def set_notion_page_id(achievement_id: int, notion_page_id: str) -> None:
+    """Store the Notion page ID after promoting or syncing."""
     conn = get_connection()
     try:
         conn.execute(
             """
             UPDATE achievements
-            SET notion_page_id = ?, notion_task = ?, updated_at = ?
+            SET notion_page_id = ?, updated_at = ?
             WHERE id = ?
             """,
-            (notion_page_id, notion_task, datetime.now().isoformat(), achievement_id),
+            (notion_page_id, datetime.now().isoformat(), achievement_id),
         )
         conn.commit()
     finally:
