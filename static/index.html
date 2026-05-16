@@ -10,19 +10,61 @@
     <div class="container">
         <header>
             <h1>Achievement Tracker</h1>
-            <div class="theme-toggle">
-                <span class="theme-label">Dark</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="theme-toggle">
-                    <span class="toggle-slider"></span>
-                </label>
-                <span class="theme-label">Light</span>
+            <div class="header-actions">
+                <button class="btn btn-primary btn-sm" id="add-achievement-btn">+ Add Achievement</button>
+                <div class="theme-toggle">
+                    <span class="theme-label">Dark</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="theme-toggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="theme-label">Light</span>
+                </div>
             </div>
         </header>
 
-        <!-- New Achievement Form -->
-        <h2 class="section-heading">New Achievement</h2>
-        <section class="card form-card">
+        <!-- Search & Filter -->
+        <h2 class="section-heading">Search & Filter</h2>
+        <section class="card filter-card">
+            <div class="filter-row">
+                <input type="text" id="search-input" placeholder="Search achievements..." class="search-input">
+                <select id="tag-filter" class="filter-select">
+                    <option value="">All tags</option>
+                </select>
+            </div>
+            <div class="filter-row">
+                <select id="company-filter" class="filter-select">
+                    <option value="">All companies</option>
+                </select>
+                <div class="date-range">
+                    <label class="date-label" for="date-from">From</label>
+                    <input type="date" id="date-from" class="filter-date">
+                    <label class="date-label" for="date-to">To</label>
+                    <input type="date" id="date-to" class="filter-date">
+                </div>
+            </div>
+            <button type="button" class="btn btn-link btn-sm" id="view-all-tags-btn">View all tags</button>
+        </section>
+
+        <!-- Achievement List -->
+        <h2 class="section-heading">Achievements</h2>
+        <section id="achievements-list"></section>
+
+        <!-- Show Archived Toggle -->
+        <div class="archive-toggle">
+            <label>
+                <input type="checkbox" id="show-archived"> Show archived
+            </label>
+        </div>
+    </div>
+
+    <!-- Add Achievement Modal -->
+    <div class="modal-overlay" id="add-modal">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h2>New Achievement</h2>
+                <button class="modal-close" id="add-modal-close">&times;</button>
+            </div>
             <form id="achievement-form">
                 <div class="form-group">
                     <label for="title">Title <span class="optional">(optional)</span></label>
@@ -62,42 +104,11 @@
                     <button type="button" class="btn btn-secondary btn-sm" id="suggest-tags-btn">Suggest Tags</button>
                     <div class="suggested-tags" id="suggested-tags"></div>
                 </div>
-                <button type="submit" class="btn btn-primary">Save Achievement</button>
-            </form>
-        </section>
-
-        <!-- Search & Filter -->
-        <h2 class="section-heading">Search & Filter</h2>
-        <section class="card filter-card">
-            <div class="filter-row">
-                <input type="text" id="search-input" placeholder="Search achievements..." class="search-input">
-                <select id="tag-filter" class="filter-select">
-                    <option value="">All tags</option>
-                </select>
-            </div>
-            <div class="filter-row">
-                <select id="company-filter" class="filter-select">
-                    <option value="">All companies</option>
-                </select>
-                <div class="date-range">
-                    <label class="date-label" for="date-from">From</label>
-                    <input type="date" id="date-from" class="filter-date">
-                    <label class="date-label" for="date-to">To</label>
-                    <input type="date" id="date-to" class="filter-date">
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="add-cancel-btn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Achievement</button>
                 </div>
-            </div>
-            <button type="button" class="btn btn-link btn-sm" id="view-all-tags-btn">View all tags</button>
-        </section>
-
-        <!-- Achievement List -->
-        <h2 class="section-heading">Achievements</h2>
-        <section id="achievements-list"></section>
-
-        <!-- Show Archived Toggle -->
-        <div class="archive-toggle">
-            <label>
-                <input type="checkbox" id="show-archived"> Show archived
-            </label>
+            </form>
         </div>
     </div>
 

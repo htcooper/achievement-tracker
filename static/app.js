@@ -401,6 +401,19 @@ const mainTagInput = createTagInput(
     (tags) => { currentFormTags = tags; }
 );
 
+// === Add Modal ===
+function openAddModal() {
+    document.getElementById("add-modal").classList.add("visible");
+}
+
+function closeAddModal() {
+    document.getElementById("add-modal").classList.remove("visible");
+}
+
+document.getElementById("add-achievement-btn").addEventListener("click", openAddModal);
+document.getElementById("add-modal-close").addEventListener("click", closeAddModal);
+document.getElementById("add-cancel-btn").addEventListener("click", closeAddModal);
+
 document.getElementById("achievement-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const title = document.getElementById("title").value.trim() || null;
@@ -413,6 +426,7 @@ document.getElementById("achievement-form").addEventListener("submit", async (e)
     try {
         await api("POST", "/achievements", { title, company, situation, task, action, result, tags: currentFormTags });
         showToast("Achievement saved!");
+        closeAddModal();
         document.getElementById("achievement-form").reset();
         currentFormTags = [];
         mainTagInput.render();
