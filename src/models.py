@@ -62,3 +62,12 @@ class PromoteRequest(BaseModel):
     task: str
     action: str
     result: str
+
+
+class RewriteRequest(BaseModel):
+    field: str
+    text: str
+
+
+class RewriteResponse(BaseModel):
+    rewritten_text: str

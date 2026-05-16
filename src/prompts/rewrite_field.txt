@@ -1,0 +1,14 @@
+Rewrite the following {field} field for a career achievement. Follow these rules exactly:
+
+- Write in first person, natural narrative prose (not resume bullet style)
+- Normalize to past tense throughout
+- Fix grammar, remove filler words, and eliminate repetition
+- Preserve all specific details — do not drop facts, names, numbers, or outcomes
+- Match the original length roughly, but it is fine to be shorter if the original had repetition or unclear storytelling; do not pad with filler to compensate
+- Do not add any details that are not present in the original
+- Avoid em-dashes; use commas, semicolons, or separate sentences instead
+- Do not use corporate buzzwords or AI-sounding phrasing
+- Return only the rewritten text, no explanation or commentary
+
+Field content:
+{text}

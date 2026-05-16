@@ -10,6 +10,7 @@ from openai import AsyncOpenAI, OpenAI
 PROMPTS_DIR = Path(__file__).parent / "prompts"
 TAG_PROMPT_PATH = PROMPTS_DIR / "tag_suggestions.txt"
 TITLE_PROMPT_PATH = PROMPTS_DIR / "title_suggestion.txt"
+REWRITE_PROMPT_PATH = PROMPTS_DIR / "rewrite_field.txt"
 
 
 def _load_prompt(path: Path) -> str:
@@ -120,6 +121,34 @@ async def _suggest_title_async(
     if not content:
         return None
     return content.strip()[:60]
+
+
+async def rewrite_field_async(field_name: str, text: str) -> str:
+    """Rewrite a single STAR field using the configured prompt."""
+    template = _load_prompt(REWRITE_PROMPT_PATH)
+    prompt = template.format(field=field_name, text=text)
+
+    client = AsyncOpenAI()
+    response = await client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are a professional writer helping someone document career "
+                    "achievements in STAR format. Your job is to clean up dictated or "
+                    "rough text into polished, natural narrative prose suitable for a "
+                    "performance review or promotion case."
+                ),
+            },
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0.3,
+        max_tokens=500,
+    )
+
+    content = response.choices[0].message.content
+    return content.strip() if content else text
 
 
 async def suggest_tags_and_title(

@@ -170,6 +170,22 @@ header h1 {
     margin-bottom: 4px;
 }
 
+.hidden {
+    display: none !important;
+}
+
+.rewrite-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.rewrite-confirm {
+    display: flex;
+    gap: 6px;
+}
+
 .optional, .hint {
     font-weight: 400;
     color: var(--text-secondary);

@@ -20,6 +20,8 @@ from src.models import (
     AchievementResponse,
     AchievementUpdate,
     PromoteRequest,
+    RewriteRequest,
+    RewriteResponse,
     TagSuggestRequest,
     TagSuggestResponse,
     TagWithCount,
@@ -168,6 +170,14 @@ async def suggest_tags(body: TagSuggestRequest) -> TagSuggestResponse:
         existing_tags=existing,
     )
     return TagSuggestResponse(suggested_tags=tags)
+
+
+@app.post("/api/rewrite-field", response_model=RewriteResponse)
+async def rewrite_field(body: RewriteRequest) -> RewriteResponse:
+    if not tag_suggester.is_configured():
+        raise HTTPException(status_code=503, detail="OpenAI API key not configured")
+    rewritten = await tag_suggester.rewrite_field_async(body.field, body.text)
+    return RewriteResponse(rewritten_text=rewritten)
 
 
 @app.post("/api/suggest-title", response_model=TitleSuggestResponse)

@@ -353,6 +353,9 @@ async function loadFeatures() {
     features = await api("GET", "/config/features");
     document.getElementById("suggest-tags-btn").style.display = features.ai_tags ? "" : "none";
     document.getElementById("suggest-title-btn").style.display = features.ai_tags ? "" : "none";
+    document.querySelectorAll(".rewrite-btn").forEach(btn => {
+        btn.style.display = features.ai_tags ? "" : "none";
+    });
 }
 
 async function loadTags() {
@@ -435,6 +438,58 @@ document.getElementById("achievement-form").addEventListener("submit", async (e)
     } catch (err) {
         showToast(err.message, true);
     }
+});
+
+// === Rewrite with AI ===
+const rewriteOriginals = new Map(); // textareaId → original text
+
+async function rewriteField(btn) {
+    const targetId = btn.dataset.target;
+    const fieldName = btn.dataset.field;
+    const textarea = document.getElementById(targetId);
+    const text = textarea.value.trim();
+    if (!text) return;
+
+    rewriteOriginals.set(targetId, text);
+    btn.disabled = true;
+    btn.textContent = "Rewriting...";
+
+    try {
+        const res = await api("POST", "/rewrite-field", { field: fieldName, text });
+        textarea.value = res.rewritten_text;
+        btn.classList.add("hidden");
+        document.getElementById(`${targetId}-rewrite-confirm`).classList.remove("hidden");
+    } catch (err) {
+        showToast(err.message, true);
+        rewriteOriginals.delete(targetId);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "Rewrite with AI";
+    }
+}
+
+function keepRewrite(targetId) {
+    rewriteOriginals.delete(targetId);
+    document.getElementById(`${targetId}-rewrite-confirm`).classList.add("hidden");
+    document.querySelector(`.rewrite-btn[data-target="${targetId}"]`).classList.remove("hidden");
+}
+
+function revertRewrite(targetId) {
+    const original = rewriteOriginals.get(targetId);
+    if (original !== undefined) {
+        document.getElementById(targetId).value = original;
+        rewriteOriginals.delete(targetId);
+    }
+    document.getElementById(`${targetId}-rewrite-confirm`).classList.add("hidden");
+    document.querySelector(`.rewrite-btn[data-target="${targetId}"]`).classList.remove("hidden");
+}
+
+document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-action='keep-rewrite'], [data-action='revert-rewrite'], .rewrite-btn");
+    if (!btn) return;
+    if (btn.classList.contains("rewrite-btn")) rewriteField(btn);
+    else if (btn.dataset.action === "keep-rewrite") keepRewrite(btn.dataset.target);
+    else if (btn.dataset.action === "revert-rewrite") revertRewrite(btn.dataset.target);
 });
 
 // === Suggest Tags ===

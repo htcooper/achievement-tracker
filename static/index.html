@@ -82,18 +82,46 @@
                 <div class="form-group">
                     <label for="situation">Situation</label>
                     <textarea id="situation" placeholder="What was the context or challenge?" rows="2" required></textarea>
+                    <div class="rewrite-row" id="situation-rewrite-row">
+                        <button type="button" class="btn btn-secondary btn-sm rewrite-btn" data-target="situation" data-field="Situation">Rewrite with AI</button>
+                        <div class="rewrite-confirm hidden" id="situation-rewrite-confirm">
+                            <button type="button" class="btn btn-primary btn-sm" data-action="keep-rewrite" data-target="situation">Keep</button>
+                            <button type="button" class="btn btn-secondary btn-sm" data-action="revert-rewrite" data-target="situation">Revert</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="task">Task <span class="optional">(optional)</span></label>
                     <textarea id="task" placeholder="What were you asked to do?" rows="2"></textarea>
+                    <div class="rewrite-row" id="task-rewrite-row">
+                        <button type="button" class="btn btn-secondary btn-sm rewrite-btn" data-target="task" data-field="Task">Rewrite with AI</button>
+                        <div class="rewrite-confirm hidden" id="task-rewrite-confirm">
+                            <button type="button" class="btn btn-primary btn-sm" data-action="keep-rewrite" data-target="task">Keep</button>
+                            <button type="button" class="btn btn-secondary btn-sm" data-action="revert-rewrite" data-target="task">Revert</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="action">What I did</label>
                     <textarea id="action" placeholder="What actions did you take?" rows="2" required></textarea>
+                    <div class="rewrite-row" id="action-rewrite-row">
+                        <button type="button" class="btn btn-secondary btn-sm rewrite-btn" data-target="action" data-field="Action">Rewrite with AI</button>
+                        <div class="rewrite-confirm hidden" id="action-rewrite-confirm">
+                            <button type="button" class="btn btn-primary btn-sm" data-action="keep-rewrite" data-target="action">Keep</button>
+                            <button type="button" class="btn btn-secondary btn-sm" data-action="revert-rewrite" data-target="action">Revert</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="result">Result <span class="optional">(optional)</span></label>
                     <textarea id="result" placeholder="What was the outcome or impact?" rows="2"></textarea>
+                    <div class="rewrite-row" id="result-rewrite-row">
+                        <button type="button" class="btn btn-secondary btn-sm rewrite-btn" data-target="result" data-field="Result">Rewrite with AI</button>
+                        <div class="rewrite-confirm hidden" id="result-rewrite-confirm">
+                            <button type="button" class="btn btn-primary btn-sm" data-action="keep-rewrite" data-target="result">Keep</button>
+                            <button type="button" class="btn btn-secondary btn-sm" data-action="revert-rewrite" data-target="result">Revert</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Tags</label>
@@ -136,18 +164,46 @@
                 <div class="form-group">
                     <label for="edit-situation">Situation</label>
                     <textarea id="edit-situation" rows="2" required></textarea>
+                    <div class="rewrite-row" id="edit-situation-rewrite-row">
+                        <button type="button" class="btn btn-secondary btn-sm rewrite-btn" data-target="edit-situation" data-field="Situation">Rewrite with AI</button>
+                        <div class="rewrite-confirm hidden" id="edit-situation-rewrite-confirm">
+                            <button type="button" class="btn btn-primary btn-sm" data-action="keep-rewrite" data-target="edit-situation">Keep</button>
+                            <button type="button" class="btn btn-secondary btn-sm" data-action="revert-rewrite" data-target="edit-situation">Revert</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="edit-task">Task <span class="optional">(optional)</span></label>
                     <textarea id="edit-task" rows="2"></textarea>
+                    <div class="rewrite-row" id="edit-task-rewrite-row">
+                        <button type="button" class="btn btn-secondary btn-sm rewrite-btn" data-target="edit-task" data-field="Task">Rewrite with AI</button>
+                        <div class="rewrite-confirm hidden" id="edit-task-rewrite-confirm">
+                            <button type="button" class="btn btn-primary btn-sm" data-action="keep-rewrite" data-target="edit-task">Keep</button>
+                            <button type="button" class="btn btn-secondary btn-sm" data-action="revert-rewrite" data-target="edit-task">Revert</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="edit-action">What I did</label>
                     <textarea id="edit-action" rows="2" required></textarea>
+                    <div class="rewrite-row" id="edit-action-rewrite-row">
+                        <button type="button" class="btn btn-secondary btn-sm rewrite-btn" data-target="edit-action" data-field="Action">Rewrite with AI</button>
+                        <div class="rewrite-confirm hidden" id="edit-action-rewrite-confirm">
+                            <button type="button" class="btn btn-primary btn-sm" data-action="keep-rewrite" data-target="edit-action">Keep</button>
+                            <button type="button" class="btn btn-secondary btn-sm" data-action="revert-rewrite" data-target="edit-action">Revert</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="edit-result">Result <span class="optional">(optional)</span></label>
                     <textarea id="edit-result" rows="2"></textarea>
+                    <div class="rewrite-row" id="edit-result-rewrite-row">
+                        <button type="button" class="btn btn-secondary btn-sm rewrite-btn" data-target="edit-result" data-field="Result">Rewrite with AI</button>
+                        <div class="rewrite-confirm hidden" id="edit-result-rewrite-confirm">
+                            <button type="button" class="btn btn-primary btn-sm" data-action="keep-rewrite" data-target="edit-result">Keep</button>
+                            <button type="button" class="btn btn-secondary btn-sm" data-action="revert-rewrite" data-target="edit-result">Revert</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Tags</label>
