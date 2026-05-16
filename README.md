@@ -3,7 +3,10 @@
 A lightweight, self-hosted web app for capturing day-to-day accomplishments in STAR format, with AI-powered writing assistance. Built for tracking wins that matter when it's time to update your resume or make the case for a promotion.
 
 <p align="center">
-  <img src="at-ss.png" alt="Achievement Tracker screenshot" width="500">
+  <img src="landing-page.png" alt="Achievement Tracker main view" width="600">
+</p>
+<p align="center">
+  <img src="new-achievement.png" alt="New Achievement modal with AI rewrite" width="400">
 </p>
 
 ## Quick Start
