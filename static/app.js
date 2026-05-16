@@ -595,6 +595,28 @@ document.getElementById("edit-delete-btn").addEventListener("click", async () =>
     }
 });
 
+// === Promote Modal Char Counts ===
+const NOTION_LIMIT = 2000;
+
+function updateCharCount(textareaId, countId) {
+    const len = document.getElementById(textareaId).value.length;
+    const el = document.getElementById(countId);
+    el.textContent = `${len} / ${NOTION_LIMIT}`;
+    el.classList.toggle("char-count-warning", len >= 1800 && len < NOTION_LIMIT);
+    el.classList.toggle("char-count-over", len >= NOTION_LIMIT);
+}
+
+[
+    ["promote-situation", "promote-situation-count"],
+    ["promote-task",      "promote-task-count"],
+    ["promote-action",    "promote-action-count"],
+    ["promote-result",    "promote-result-count"],
+].forEach(([textareaId, countId]) => {
+    document.getElementById(textareaId).addEventListener("input", () =>
+        updateCharCount(textareaId, countId)
+    );
+});
+
 // === Promote Modal ===
 async function openPromoteModal(id) {
     const a = await api("GET", `/achievements/${id}`);
@@ -607,6 +629,9 @@ async function openPromoteModal(id) {
     document.getElementById("promote-screenshots").value = "";
     document.getElementById("promote-modal-title").textContent = isSync ? "Sync to Notion" : "Promote to Notion";
     document.getElementById("promote-submit-btn").textContent = isSync ? "Sync to Notion" : "Send to Notion";
+    ["situation", "task", "action", "result"].forEach(f =>
+        updateCharCount(`promote-${f}`, `promote-${f}-count`)
+    );
     document.getElementById("promote-modal").classList.add("visible");
 }
 

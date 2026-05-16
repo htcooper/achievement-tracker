@@ -1,5 +1,7 @@
 """FastAPI application with achievement tracker routes."""
 
+import csv
+import io
 import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -8,6 +10,7 @@ from typing import Annotated
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, UploadFile
+from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from src import database as db
@@ -274,6 +277,33 @@ async def upload_screenshot(achievement_id: int, file: UploadFile) -> dict[str, 
     file_path.write_bytes(content)
 
     return {"filename": filename, "path": str(file_path)}
+
+
+# --- CSV Export ---
+
+
+@app.get("/api/achievements/export")
+def export_achievements() -> StreamingResponse:
+    achievements = db.get_achievements(include_archived=True)
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "id", "title", "company", "situation", "task",
+        "action", "result", "tags", "created_at", "archived", "notion_page_id",
+    ])
+    for a in achievements:
+        writer.writerow([
+            a["id"], a["title"] or "", a["company"] or "",
+            a["situation"], a["task"] or "", a["action"], a["result"] or "",
+            "|".join(a["tags"]), a["created_at"],
+            "yes" if a["archived"] else "no", a["notion_page_id"] or "",
+        ])
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=achievements.csv"},
+    )
 
 
 # --- Static files (frontend) ---

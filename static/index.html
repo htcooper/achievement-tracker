@@ -12,6 +12,7 @@
             <h1>Achievement Tracker</h1>
             <div class="header-actions">
                 <button class="btn btn-primary btn-sm" id="add-achievement-btn">+ Add Achievement</button>
+                <a class="btn btn-secondary btn-sm" href="/api/achievements/export" download>Export CSV</a>
                 <div class="theme-toggle">
                     <span class="theme-label">Dark</span>
                     <label class="toggle-switch">
@@ -179,18 +180,22 @@
                 <div class="form-group">
                     <label for="promote-situation">Situation</label>
                     <textarea id="promote-situation" rows="3" required></textarea>
+                    <span class="char-count" id="promote-situation-count">0 / 2000</span>
                 </div>
                 <div class="form-group">
                     <label for="promote-task">Task <span class="hint">(what was asked of you)</span></label>
                     <textarea id="promote-task" rows="3" required placeholder="Describe the task or responsibility you were given..."></textarea>
+                    <span class="char-count" id="promote-task-count">0 / 2000</span>
                 </div>
                 <div class="form-group">
                     <label for="promote-action">Action</label>
                     <textarea id="promote-action" rows="3" required></textarea>
+                    <span class="char-count" id="promote-action-count">0 / 2000</span>
                 </div>
                 <div class="form-group">
                     <label for="promote-result">Result</label>
                     <textarea id="promote-result" rows="3" required></textarea>
+                    <span class="char-count" id="promote-result-count">0 / 2000</span>
                 </div>
                 <div class="form-group">
                     <label>Screenshots</label>
